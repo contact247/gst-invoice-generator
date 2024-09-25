@@ -3,8 +3,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 // import '../styles/InvoiceStyles.css';
 import { 
-    Container, 
-    Grid, 
+    Container,
+    Box, 
     Paper, 
     Typography, 
     TextField, 
@@ -35,6 +35,26 @@ const InvoiceForm = () => {
   useEffect(() => {
     setIsInterState(buyerInfo.state !== sellerInfo.state);
   }, [buyerInfo.state, sellerInfo.state]);
+
+  useEffect(() => {
+    const newItems = [...items];
+    newItems.forEach((item, index) => {
+        const gstRate = item.gstRate;
+        const total = item.quantity * item.rate;
+        const gstAmount = (total * gstRate) / 100;
+        if (isInterState) {
+            item.igst = gstAmount;
+            item.cgst = 0;
+            item.sgst = 0;
+        } else {
+            item.igst = 0;
+            item.cgst = gstAmount / 2;
+            item.sgst = gstAmount / 2;
+        }
+    });
+    setItems(newItems);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [isInterState]);
 
   const addItem = () => {
     setItems([...items, { description: '', quantity: 1, rate: 0, total: 0, gstRate: 18, cgst: 0, sgst: 0, igst: 0 }]);
@@ -146,8 +166,8 @@ const InvoiceForm = () => {
           Invoice
         </Typography>
         
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, mb: 4 }}>
+          <Box sx={{ flex: 1 }}>
             <TextField
               required
               id="invoiceNumber"
@@ -158,8 +178,8 @@ const InvoiceForm = () => {
               value={invoiceDetails.invoiceNumber}
               onChange={(e) => setInvoiceDetails({ ...invoiceDetails, invoiceNumber: e.target.value })}
             />
-          </Grid>
-          <Grid item xs={12} sm={6}>
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <TextField
               required
               id="invoiceDate"
@@ -172,115 +192,106 @@ const InvoiceForm = () => {
               value={invoiceDetails.invoiceDate}
               onChange={(e) => setInvoiceDetails({ ...invoiceDetails, invoiceDate: e.target.value })}
             />
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
-        <Typography component="h2" variant="h5" color="primary" gutterBottom sx={{ mt: 4 }}>
-          Buyer Information
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              id="buyerCompany"
-              name="buyerCompany"
-              label="Company Name"
-              fullWidth
-              variant="outlined"
-              value={buyerInfo.companyName}
-              onChange={(e) => handleBuyerInfoChange('companyName', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              id="buyerGST"
-              name="buyerGST"
-              label="GST Number"
-              fullWidth
-              variant="outlined"
-              value={buyerInfo.gstNumber}
-              onChange={(e) => handleBuyerInfoChange('gstNumber', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Select
-              required
-              variant="outlined"
-              id="buyerState"
-              value={buyerInfo.state}
-              onChange={(e) => handleBuyerInfoChange('state', e.target.value)}
-              fullWidth
-              displayEmpty
-              renderValue={(selected) => {
-                if (!selected) {
-                  return <em>Select State</em>;
-                }
-                return selected;
-              }}
-            >
-              <MenuItem value="" disabled>
-                <em>Select State</em>
-              </MenuItem>
-              {states.map((state) => (
-                <MenuItem key={state} value={state}>{state}</MenuItem>
-              ))}
-            </Select>
-          </Grid>
-        </Grid>
+        <Box sx={{ display: 'flex', flexDirection: 'row', mt: 4, gap: 4 }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography component="h2" variant="h5" color="primary" gutterBottom>
+              Buyer Information
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                required
+                id="buyerCompany"
+                name="buyerCompany"
+                label="Company Name"
+                fullWidth
+                variant="outlined"
+                value={buyerInfo.companyName}
+                onChange={(e) => handleBuyerInfoChange('companyName', e.target.value)}
+              />
+              <TextField
+                required
+                id="buyerGST"
+                name="buyerGST"
+                label="GST Number"
+                fullWidth
+                variant="outlined"
+                value={buyerInfo.gstNumber}
+                onChange={(e) => handleBuyerInfoChange('gstNumber', e.target.value)}
+              />
+              <Select
+                id="buyerState"
+                value={buyerInfo.state}
+                onChange={(e) => handleBuyerInfoChange('state', e.target.value)}
+                fullWidth
+                displayEmpty
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return <em>Select State</em>;
+                  }
+                  return selected;
+                }}
+              >
+                <MenuItem value="" disabled>
+                  <em>Select State</em>
+                </MenuItem>
+                {states.map((state) => (
+                  <MenuItem key={state} value={state}>{state}</MenuItem>
+                ))}
+              </Select>
+            </Box>
+          </Box>
 
-        <Typography component="h2" variant="h5" color="primary" gutterBottom sx={{ mt: 4 }}>
-          Seller Information
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              id="sellerCompany"
-              name="sellerCompany"
-              label="Company Name"
-              fullWidth
-              variant="outlined"
-              value={sellerInfo.companyName}
-              onChange={(e) => handleSellerInfoChange('companyName', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              id="sellerGST"
-              name="sellerGST"
-              label="GST Number"
-              fullWidth
-              variant="outlined"
-              value={sellerInfo.gstNumber}
-              onChange={(e) => handleSellerInfoChange('gstNumber', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Select
-              required
-              id="sellerState"
-              value={sellerInfo.state}
-              onChange={(e) => handleSellerInfoChange('state', e.target.value)}
-              fullWidth
-              displayEmpty
-              renderValue={(selected) => {
-                if (!selected) {
-                  return <em>Select State</em>;
-                }
-                return selected;
-              }}
-            >
-              <MenuItem value="" disabled>
-                <em>Select State</em>
-              </MenuItem>
-              {states.map((state) => (
-                <MenuItem key={state} value={state}>{state}</MenuItem>
-              ))}
-            </Select>
-          </Grid>
-        </Grid>
+          <Box sx={{ flex: 1 }}>
+            <Typography component="h2" variant="h5" color="primary" gutterBottom>
+              Seller Information
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                required
+                id="sellerCompany"
+                name="sellerCompany"
+                label="Company Name"
+                fullWidth
+                variant="outlined"
+                value={sellerInfo.companyName}
+                onChange={(e) => handleSellerInfoChange('companyName', e.target.value)}
+              />
+              <TextField
+                required
+                id="sellerGST"
+                name="sellerGST"
+                label="GST Number"
+                fullWidth
+                variant="outlined"
+                value={sellerInfo.gstNumber}
+                onChange={(e) => handleSellerInfoChange('gstNumber', e.target.value)}
+              />
+              <Select
+                id="sellerState"
+                value={sellerInfo.state}
+                onChange={(e) => handleSellerInfoChange('state', e.target.value)}
+                fullWidth
+                displayEmpty
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return <em>Select State</em>;
+                  }
+                  return selected;
+                }}
+              >
+                <MenuItem value="" disabled>
+                  <em>Select State</em>
+                </MenuItem>
+                {states.map((state) => (
+                  <MenuItem key={state} value={state}>{state}</MenuItem>
+                ))}
+              </Select>
+            </Box>
+          </Box>
+        </Box>
 
         <Typography component="h2" variant="h5" color="primary" gutterBottom sx={{ mt: 4 }}>
           Invoice Items
