@@ -143,7 +143,7 @@ const InvoiceForm = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }} ref={invoiceRef}>
         <Typography component="h1" variant="h4" color="primary" gutterBottom>
-          Invoice
+          GST Invoice
         </Typography>
         
         <Grid container spacing={3}>
